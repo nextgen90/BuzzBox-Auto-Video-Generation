@@ -223,6 +223,25 @@ def _generate_image_captions(
 def _generate_and_decode_prompts(
     prompt_enhancer_model, prompt_enhancer_tokenizer, model_inputs, max_new_tokens: int
 ) -> List[str]:
+    
+    # 1. Print the actual device of the model parameters
+    target_device = next(prompt_enhancer_model.parameters()).device
+    print(f"DEBUG_PROMPT_ENHANCER: Model weights are on: {target_device}")
+    
+    # 2. Verify every tensor passed into generate()
+    for k, v in model_inputs.items():
+        if hasattr(v, "device"):
+            print(f"DEBUG_PROMPT_ENHANCER: Input {k} is currently on: {v.device}")
+            
+    # 3. Verify BatchEncoding.to(device) is not returning a new object that is discarded.
+    # We explicitly assign it back to model_inputs and move to target_device.
+    model_inputs = model_inputs.to(target_device)
+    
+    # 4. Verify generate() receives tensors on the SAME device as the model.
+    for k, v in model_inputs.items():
+        if hasattr(v, "device"):
+            print(f"DEBUG_PROMPT_ENHANCER: Input {k} after explicit .to() is on: {v.device}")
+
     with torch.inference_mode():
         outputs = prompt_enhancer_model.generate(
             **model_inputs, max_new_tokens=max_new_tokens
