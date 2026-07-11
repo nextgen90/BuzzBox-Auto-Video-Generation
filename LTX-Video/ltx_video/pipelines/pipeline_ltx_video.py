@@ -770,16 +770,42 @@ class LTXVideoPipeline(DiffusionPipeline):
             gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
+        # Derive target device from generator to prevent CPU vs CUDA mismatch during offloading
+        if isinstance(generator, list) and len(generator) > 0:
+            target_device = generator[0].device
+        elif isinstance(generator, torch.Generator):
+            target_device = generator.device
+        else:
+            target_device = device
+
         if latents is not None:
             assert (
                 latents.shape == latent_shape
             ), f"Latents have to be of shape {latent_shape} but are {latents.shape}."
-            latents = latents.to(device=device, dtype=dtype)
+            latents = latents.to(device=target_device, dtype=dtype)
 
         # For backward compatibility, generate in the "patchified" shape and rearrange
         b, c, f, h, w = latent_shape
+
+        print("========================")
+        print("PREPARE LATENTS")
+        print("========================")
+        print(f"device: {device}")
+        print(f"dtype: {dtype}")
+        if hasattr(generator, "device"):
+            print(f"generator.device: {generator.device}")
+        elif isinstance(generator, list) and len(generator) > 0:
+            print(f"generator.device: {[g.device for g in generator]}")
+        else:
+            print("generator.device: None")
+        print(f"latents.device: {latents.device if latents is not None else None}")
+        print(f"scheduler.device: {getattr(self.scheduler, 'device', None)}")
+        print(f"vae.device: {getattr(self.vae, 'device', None)}")
+        print(f"transformer.device: {getattr(self.transformer, 'device', None)}")
+        print("========================")
+
         noise = randn_tensor(
-            (b, f * h * w, c), generator=generator, device=device, dtype=dtype
+            (b, f * h * w, c), generator=generator, device=target_device, dtype=dtype
         )
         noise = rearrange(noise, "b (f h w) c -> b c f h w", f=f, h=h, w=w)
 
