@@ -1,4 +1,4 @@
-# Adapted from: https://github.com/huggingface/diffusers/blob/main/src/diffusers/pipelines/pixart_alpha/pipeline_pixart_alpha.py
+    # Adapted from: https://github.com/huggingface/diffusers/blob/main/src/diffusers/pipelines/pixart_alpha/pipeline_pixart_alpha.py
 import copy
 import inspect
 import math
@@ -1322,14 +1322,49 @@ class LTXVideoPipeline(DiffusionPipeline):
 
                 # predict noise model_output
                 with context_manager:
+                    # Dynamically derive the actual hardware execution device of the transformer
+                    transformer_device = next(self.transformer.parameters()).device
+
+                    # Conditionally move all required inputs to the transformer's execution device
+                    _latent_model_input = latent_model_input.to(self.transformer.dtype)
+                    if _latent_model_input.device != transformer_device:
+                        _latent_model_input = _latent_model_input.to(transformer_device)
+
+                    _indices_grid = fractional_coords
+                    if _indices_grid.device != transformer_device:
+                        _indices_grid = _indices_grid.to(transformer_device)
+
+                    _encoder_hidden_states = prompt_embeds_batch[indices].to(self.transformer.dtype)
+                    if _encoder_hidden_states.device != transformer_device:
+                        _encoder_hidden_states = _encoder_hidden_states.to(transformer_device)
+
+                    _encoder_attention_mask = prompt_attention_mask_batch[indices]
+                    if _encoder_attention_mask is not None and _encoder_attention_mask.device != transformer_device:
+                        _encoder_attention_mask = _encoder_attention_mask.to(transformer_device)
+
+                    _timestep = current_timestep
+                    if _timestep.device != transformer_device:
+                        _timestep = _timestep.to(transformer_device)
+
+                    print("------------------------------------------------")
+                    print("TRANSFORMER INPUT AUDIT")
+                    print("------------------------------------------------")
+                    print(f"transformer device: {transformer_device}")
+                    print(f"transformer dtype: {self.transformer.dtype}")
+                    print(f"latent_model_input.device: {_latent_model_input.device}")
+                    print(f"latent_model_input.dtype: {_latent_model_input.dtype}")
+                    print(f"encoder_hidden_states.device: {_encoder_hidden_states.device}")
+                    print(f"encoder_hidden_states.dtype: {_encoder_hidden_states.dtype}")
+                    print(f"encoder_attention_mask.device: {_encoder_attention_mask.device}")
+                    print(f"current_timestep.device: {_timestep.device}")
+                    print(f"conditioning_mask.device: {conditioning_mask.device if conditioning_mask is not None else None}")
+                    print("------------------------------------------------")
                     noise_pred = self.transformer(
-                        latent_model_input.to(self.transformer.dtype),
-                        indices_grid=fractional_coords,
-                        encoder_hidden_states=prompt_embeds_batch[indices].to(
-                            self.transformer.dtype
-                        ),
-                        encoder_attention_mask=prompt_attention_mask_batch[indices],
-                        timestep=current_timestep,
+                        _latent_model_input,
+                        indices_grid=_indices_grid,
+                        encoder_hidden_states=_encoder_hidden_states,
+                        encoder_attention_mask=_encoder_attention_mask,
+                        timestep=_timestep,
                         skip_layer_mask=skip_layer_mask,
                         skip_layer_strategy=skip_layer_strategy,
                         return_dict=False,

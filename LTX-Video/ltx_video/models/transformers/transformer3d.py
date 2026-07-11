@@ -436,6 +436,15 @@ class Transformer3DModel(ModelMixin, ConfigMixin):
         # 2. Blocks
         if self.caption_projection is not None:
             batch_size = hidden_states.shape[0]
+            print(f"encoder_hidden_states.device: {encoder_hidden_states.device}")
+            try:
+                print(f"caption_projection.weight.device: {self.caption_projection.weight.device}")
+                print(f"caption_projection.weight.dtype: {self.caption_projection.weight.dtype}")
+            except AttributeError:
+                p = next(self.caption_projection.parameters())
+                print(f"caption_projection.weight.device: {p.device}")
+                print(f"caption_projection.weight.dtype: {p.dtype}")
+            print(f"encoder_hidden_states.dtype: {encoder_hidden_states.dtype}")
             encoder_hidden_states = self.caption_projection(encoder_hidden_states)
             encoder_hidden_states = encoder_hidden_states.view(
                 batch_size, -1, hidden_states.shape[-1]
