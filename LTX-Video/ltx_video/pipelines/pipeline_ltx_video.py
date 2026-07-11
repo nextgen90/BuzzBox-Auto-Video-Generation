@@ -248,12 +248,8 @@ class LTXVideoPipeline(DiffusionPipeline):
     _optional_components = [
         "tokenizer",
         "text_encoder",
-        "prompt_enhancer_image_caption_model",
-        "prompt_enhancer_image_caption_processor",
-        "prompt_enhancer_llm_model",
-        "prompt_enhancer_llm_tokenizer",
     ]
-    model_cpu_offload_seq = "prompt_enhancer_image_caption_model->prompt_enhancer_llm_model->transformer->vae"
+    model_cpu_offload_seq = "transformer->vae"
 
     def __init__(
         self,
@@ -263,10 +259,6 @@ class LTXVideoPipeline(DiffusionPipeline):
         transformer: Transformer3DModel,
         scheduler: DPMSolverMultistepScheduler,
         patchifier: Patchifier,
-        prompt_enhancer_image_caption_model: AutoModelForCausalLM,
-        prompt_enhancer_image_caption_processor: AutoProcessor,
-        prompt_enhancer_llm_model: AutoModelForCausalLM,
-        prompt_enhancer_llm_tokenizer: AutoTokenizer,
         allowed_inference_steps: Optional[List[float]] = None,
     ):
         super().__init__()
@@ -278,10 +270,6 @@ class LTXVideoPipeline(DiffusionPipeline):
             transformer=transformer,
             scheduler=scheduler,
             patchifier=patchifier,
-            prompt_enhancer_image_caption_model=prompt_enhancer_image_caption_model,
-            prompt_enhancer_image_caption_processor=prompt_enhancer_image_caption_processor,
-            prompt_enhancer_llm_model=prompt_enhancer_llm_model,
-            prompt_enhancer_llm_tokenizer=prompt_enhancer_llm_tokenizer,
         )
 
         self.video_scale_factor, self.vae_scale_factor, _ = get_vae_size_scale_factor(
@@ -364,63 +352,31 @@ class LTXVideoPipeline(DiffusionPipeline):
         return self
 
     def enable_model_cpu_offload(self, gpu_id: Optional[int] = None, device: Union[torch.device, str, None] = None):
-        # We handle text_encoder and prompt_enhancer models manually to prevent accelerate from adding hooks.
-        # Temporarily detach them so super() doesn't add an accelerate hook that moves inputs to GPU.
+        # We handle text_encoder manually to prevent accelerate from adding hooks.
+        # Temporarily detach it so super() doesn't add an accelerate hook that moves inputs to GPU.
         has_text_encoder = hasattr(self, "text_encoder") and self.text_encoder is not None
         temp_text_encoder = None
         if has_text_encoder:
             temp_text_encoder = self.text_encoder
             self.text_encoder = None
-            
-        has_caption_model = hasattr(self, "prompt_enhancer_image_caption_model") and self.prompt_enhancer_image_caption_model is not None
-        temp_caption_model = None
-        if has_caption_model:
-            temp_caption_model = self.prompt_enhancer_image_caption_model
-            self.prompt_enhancer_image_caption_model = None
-            
-        has_llm_model = hasattr(self, "prompt_enhancer_llm_model") and self.prompt_enhancer_llm_model is not None
-        temp_llm_model = None
-        if has_llm_model:
-            temp_llm_model = self.prompt_enhancer_llm_model
-            self.prompt_enhancer_llm_model = None
             
         super().enable_model_cpu_offload(gpu_id=gpu_id, device=device)
         
         if has_text_encoder:
             self.text_encoder = temp_text_encoder
-        if has_caption_model:
-            self.prompt_enhancer_image_caption_model = temp_caption_model
-        if has_llm_model:
-            self.prompt_enhancer_llm_model = temp_llm_model
 
     def enable_sequential_cpu_offload(self, gpu_id: Optional[int] = None, device: Union[torch.device, str, None] = None):
-        # We handle text_encoder and prompt_enhancer models manually to prevent accelerate from adding hooks.
+        # We handle text_encoder manually to prevent accelerate from adding hooks.
         has_text_encoder = hasattr(self, "text_encoder") and self.text_encoder is not None
         temp_text_encoder = None
         if has_text_encoder:
             temp_text_encoder = self.text_encoder
             self.text_encoder = None
             
-        has_caption_model = hasattr(self, "prompt_enhancer_image_caption_model") and self.prompt_enhancer_image_caption_model is not None
-        temp_caption_model = None
-        if has_caption_model:
-            temp_caption_model = self.prompt_enhancer_image_caption_model
-            self.prompt_enhancer_image_caption_model = None
-            
-        has_llm_model = hasattr(self, "prompt_enhancer_llm_model") and self.prompt_enhancer_llm_model is not None
-        temp_llm_model = None
-        if has_llm_model:
-            temp_llm_model = self.prompt_enhancer_llm_model
-            self.prompt_enhancer_llm_model = None
-            
         super().enable_sequential_cpu_offload(gpu_id=gpu_id, device=device)
         
         if has_text_encoder:
             self.text_encoder = temp_text_encoder
-        if has_caption_model:
-            self.prompt_enhancer_image_caption_model = temp_caption_model
-        if has_llm_model:
-            self.prompt_enhancer_llm_model = temp_llm_model
 
     def mask_text_embeddings(self, emb, mask):
         if emb.shape[0] == 1:
@@ -652,7 +608,6 @@ class LTXVideoPipeline(DiffusionPipeline):
         negative_prompt_embeds=None,
         prompt_attention_mask=None,
         negative_prompt_attention_mask=None,
-        enhance_prompt=False,
     ):
         if height % 8 != 0 or width % 8 != 0:
             raise ValueError(
@@ -714,19 +669,7 @@ class LTXVideoPipeline(DiffusionPipeline):
                     f" {negative_prompt_attention_mask.shape}."
                 )
 
-        if enhance_prompt:
-            assert (
-                self.prompt_enhancer_image_caption_model is not None
-            ), "Image caption model must be initialized if enhance_prompt is True"
-            assert (
-                self.prompt_enhancer_image_caption_processor is not None
-            ), "Image caption processor must be initialized if enhance_prompt is True"
-            assert (
-                self.prompt_enhancer_llm_model is not None
-            ), "Text prompt enhancer model must be initialized if enhance_prompt is True"
-            assert (
-                self.prompt_enhancer_llm_tokenizer is not None
-            ), "Text prompt enhancer tokenizer must be initialized if enhance_prompt is True"
+
 
     def _text_preprocessing(self, text):
         if not isinstance(text, (tuple, list)):
@@ -937,7 +880,6 @@ class LTXVideoPipeline(DiffusionPipeline):
         decode_noise_scale: Optional[List[float]] = None,
         mixed_precision: bool = False,
         offload_to_cpu: bool = False,
-        enhance_prompt: bool = False,
         text_encoder_max_tokens: int = 256,
         stochastic_sampling: bool = False,
         media_items: Optional[torch.Tensor] = None,
@@ -1015,8 +957,7 @@ class LTXVideoPipeline(DiffusionPipeline):
                 If set to `True`, the requested height and width are first mapped to the closest resolutions using
                 `ASPECT_RATIO_1024_BIN`. After the produced latents are decoded into images, they are resized back to
                 the requested resolution. Useful for generating non-square images.
-            enhance_prompt (`bool`, *optional*, defaults to `False`):
-                If set to `True`, the prompt is enhanced using a LLM model.
+
             text_encoder_max_tokens (`int`, *optional*, defaults to `256`):
                 The maximum number of tokens to use for the text encoder.
             stochastic_sampling (`bool`, *optional*, defaults to `False`):
@@ -1150,31 +1091,7 @@ class LTXVideoPipeline(DiffusionPipeline):
                     new_skip_block_list.append(skip_block_list[guidance_mapping[i]])
                 skip_block_list = new_skip_block_list
 
-        if enhance_prompt:
-            from ltx_video.utils.prompt_enhance_utils import generate_cinematic_prompt
-            self.prompt_enhancer_image_caption_model = (
-                self.prompt_enhancer_image_caption_model.to(self._execution_device)
-            )
-            self.prompt_enhancer_llm_model = self.prompt_enhancer_llm_model.to(
-                self._execution_device
-            )
 
-            prompt = generate_cinematic_prompt(
-                self.prompt_enhancer_image_caption_model,
-                self.prompt_enhancer_image_caption_processor,
-                self.prompt_enhancer_llm_model,
-                self.prompt_enhancer_llm_tokenizer,
-                prompt,
-                conditioning_items,
-                max_new_tokens=text_encoder_max_tokens,
-            )
-            # Immediately offload back to CPU to save GPU memory
-            self.prompt_enhancer_image_caption_model = self.prompt_enhancer_image_caption_model.cpu()
-            self.prompt_enhancer_llm_model = self.prompt_enhancer_llm_model.cpu()
-            import gc
-            gc.collect()
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
 
         # 3. Encode input prompt (T5 remains on CPU, prompt embeddings are moved to GPU in encode_prompt)
         logger.info("Starting prompt encoding")

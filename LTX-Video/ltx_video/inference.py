@@ -20,9 +20,6 @@ from transformers import (
 from huggingface_hub import hf_hub_download
 from dataclasses import dataclass, field
 
-# Feature flag to completely disable Prompt Enhancement (Florence and Llama models)
-ENABLE_PROMPT_ENHANCEMENT_SUBSYSTEM = False
-
 from ltx_video.models.autoencoders.causal_video_autoencoder import (
     CausalVideoAutoencoder,
 )
@@ -210,9 +207,6 @@ def create_ltx_video_pipeline(
     text_encoder_model_name_or_path: str,
     sampler: Optional[str] = None,
     device: Optional[str] = None,
-    enhance_prompt: bool = False,
-    prompt_enhancer_image_caption_model_name_or_path: Optional[str] = None,
-    prompt_enhancer_llm_model_name_or_path: Optional[str] = None,
 ) -> LTXVideoPipeline:
     ckpt_path = Path(ckpt_path)
     assert os.path.exists(
@@ -250,27 +244,6 @@ def create_ltx_video_pipeline(
     vae = vae.to(device)
     text_encoder = text_encoder.to("cpu")
 
-    if enhance_prompt:
-        from transformers import AutoModelForCausalLM, AutoProcessor, AutoTokenizer
-        prompt_enhancer_image_caption_model = AutoModelForCausalLM.from_pretrained(
-            prompt_enhancer_image_caption_model_name_or_path, trust_remote_code=True, torch_dtype=torch.bfloat16
-        )
-        prompt_enhancer_image_caption_processor = AutoProcessor.from_pretrained(
-            prompt_enhancer_image_caption_model_name_or_path, trust_remote_code=True
-        )
-        prompt_enhancer_llm_model = AutoModelForCausalLM.from_pretrained(
-            prompt_enhancer_llm_model_name_or_path,
-            torch_dtype=torch.bfloat16,
-        )
-        prompt_enhancer_llm_tokenizer = AutoTokenizer.from_pretrained(
-            prompt_enhancer_llm_model_name_or_path,
-        )
-    else:
-        prompt_enhancer_image_caption_model = None
-        prompt_enhancer_image_caption_processor = None
-        prompt_enhancer_llm_model = None
-        prompt_enhancer_llm_tokenizer = None
-
     vae = vae.to(torch.bfloat16)
     text_encoder = text_encoder.to(torch.bfloat16)
 
@@ -282,10 +255,6 @@ def create_ltx_video_pipeline(
         "tokenizer": tokenizer,
         "scheduler": scheduler,
         "vae": vae,
-        "prompt_enhancer_image_caption_model": prompt_enhancer_image_caption_model,
-        "prompt_enhancer_image_caption_processor": prompt_enhancer_image_caption_processor,
-        "prompt_enhancer_llm_model": prompt_enhancer_llm_model,
-        "prompt_enhancer_llm_tokenizer": prompt_enhancer_llm_tokenizer,
         "allowed_inference_steps": allowed_inference_steps,
     }
 
@@ -531,31 +500,12 @@ def infer(config: InferenceConfig):
 
     device = get_device()
 
-    prompt_enhancement_words_threshold = pipeline_config[
-        "prompt_enhancement_words_threshold"
-    ]
 
-    prompt_word_count = len(config.prompt.split())
-    enhance_prompt = (
-        ENABLE_PROMPT_ENHANCEMENT_SUBSYSTEM
-        and prompt_enhancement_words_threshold > 0
-        and prompt_word_count < prompt_enhancement_words_threshold
-    )
-
-    if prompt_enhancement_words_threshold > 0 and not enhance_prompt:
-        logger.info(
-            f"Prompt has {prompt_word_count} words, which exceeds the threshold of {prompt_enhancement_words_threshold}. Prompt enhancement disabled."
-        )
 
     precision = pipeline_config["precision"]
     text_encoder_model_name_or_path = pipeline_config["text_encoder_model_name_or_path"]
     sampler = pipeline_config.get("sampler", None)
-    prompt_enhancer_image_caption_model_name_or_path = pipeline_config[
-        "prompt_enhancer_image_caption_model_name_or_path"
-    ]
-    prompt_enhancer_llm_model_name_or_path = pipeline_config[
-        "prompt_enhancer_llm_model_name_or_path"
-    ]
+
 
     pipeline = create_ltx_video_pipeline(
         ckpt_path=ltxv_model_path,
@@ -563,9 +513,6 @@ def infer(config: InferenceConfig):
         text_encoder_model_name_or_path=text_encoder_model_name_or_path,
         sampler=sampler,
         device=device,
-        enhance_prompt=enhance_prompt,
-        prompt_enhancer_image_caption_model_name_or_path=prompt_enhancer_image_caption_model_name_or_path,
-        prompt_enhancer_llm_model_name_or_path=prompt_enhancer_llm_model_name_or_path,
     )
 
     if offload_to_cpu:
@@ -648,7 +595,6 @@ def infer(config: InferenceConfig):
         mixed_precision=(precision == "mixed_precision"),
         offload_to_cpu=offload_to_cpu,
         device=device,
-        enhance_prompt=enhance_prompt,
     ).images
 
     # Crop the padded images to the desired resolution and number of frames
