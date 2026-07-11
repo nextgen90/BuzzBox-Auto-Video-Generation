@@ -327,9 +327,43 @@ class InferenceConfig:
         metadata={"help": "Path to the folder to save the output video"},
     )
 
+    # -----------------------------------------------------------------------
+    # Upstream-compatible direct checkpoint / inference arguments.
+    # These override the corresponding values from the pipeline YAML config
+    # when provided, preserving full backward compatibility with the original
+    # upstream LTX-Video CLI.
+    # -----------------------------------------------------------------------
+    ckpt_path: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Path to the model checkpoint (.safetensors). "
+                "Overrides 'checkpoint_path' in the pipeline config when provided."
+            )
+        },
+    )
+    num_inference_steps: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Number of denoising steps. "
+                "Overrides 'num_inference_steps' in the pipeline config when provided."
+            )
+        },
+    )
+    guidance_scale: Optional[float] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Classifier-free guidance scale. "
+                "Overrides 'guidance_scale' in the pipeline config when provided."
+            )
+        },
+    )
+
     # Pipeline settings
     pipeline_config: str = field(
-        default="configs/ltxv-13b-0.9.7-dev.yaml",
+        default="configs/ltxv-2b-0.9.1.yaml",
         metadata={"help": "Path to the pipeline config file"},
     )
     seed: int = field(
@@ -391,6 +425,19 @@ class InferenceConfig:
 
 def infer(config: InferenceConfig):
     pipeline_config = load_pipeline_config(config.pipeline_config)
+
+    # -----------------------------------------------------------------------
+    # Apply upstream-compatible CLI overrides.
+    # When --ckpt_path / --num_inference_steps / --guidance_scale are supplied
+    # on the command line they take precedence over the pipeline YAML values,
+    # restoring full backward compatibility with the original upstream CLI.
+    # -----------------------------------------------------------------------
+    if config.ckpt_path is not None:
+        pipeline_config["checkpoint_path"] = config.ckpt_path
+    if config.num_inference_steps is not None:
+        pipeline_config["num_inference_steps"] = config.num_inference_steps
+    if config.guidance_scale is not None:
+        pipeline_config["guidance_scale"] = config.guidance_scale
 
     ltxv_model_name_or_path = pipeline_config["checkpoint_path"]
     if not os.path.isfile(ltxv_model_name_or_path):
