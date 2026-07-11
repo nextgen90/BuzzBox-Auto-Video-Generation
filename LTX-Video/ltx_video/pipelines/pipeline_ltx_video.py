@@ -368,18 +368,63 @@ class LTXVideoPipeline(DiffusionPipeline):
         return self
 
     def enable_model_cpu_offload(self, gpu_id: Optional[int] = None, device: Union[torch.device, str, None] = None):
-        # We handle text_encoder manually to ensure it stays on CPU permanently.
-        # Temporarily detach it so super() doesn't add an accelerate hook that moves inputs to GPU.
+        # We handle text_encoder and prompt_enhancer models manually to prevent accelerate from adding hooks.
+        # Temporarily detach them so super() doesn't add an accelerate hook that moves inputs to GPU.
         has_text_encoder = hasattr(self, "text_encoder") and self.text_encoder is not None
         temp_text_encoder = None
         if has_text_encoder:
             temp_text_encoder = self.text_encoder
             self.text_encoder = None
             
+        has_caption_model = hasattr(self, "prompt_enhancer_image_caption_model") and self.prompt_enhancer_image_caption_model is not None
+        temp_caption_model = None
+        if has_caption_model:
+            temp_caption_model = self.prompt_enhancer_image_caption_model
+            self.prompt_enhancer_image_caption_model = None
+            
+        has_llm_model = hasattr(self, "prompt_enhancer_llm_model") and self.prompt_enhancer_llm_model is not None
+        temp_llm_model = None
+        if has_llm_model:
+            temp_llm_model = self.prompt_enhancer_llm_model
+            self.prompt_enhancer_llm_model = None
+            
         super().enable_model_cpu_offload(gpu_id=gpu_id, device=device)
         
         if has_text_encoder:
             self.text_encoder = temp_text_encoder
+        if has_caption_model:
+            self.prompt_enhancer_image_caption_model = temp_caption_model
+        if has_llm_model:
+            self.prompt_enhancer_llm_model = temp_llm_model
+
+    def enable_sequential_cpu_offload(self, gpu_id: Optional[int] = None, device: Union[torch.device, str, None] = None):
+        # We handle text_encoder and prompt_enhancer models manually to prevent accelerate from adding hooks.
+        has_text_encoder = hasattr(self, "text_encoder") and self.text_encoder is not None
+        temp_text_encoder = None
+        if has_text_encoder:
+            temp_text_encoder = self.text_encoder
+            self.text_encoder = None
+            
+        has_caption_model = hasattr(self, "prompt_enhancer_image_caption_model") and self.prompt_enhancer_image_caption_model is not None
+        temp_caption_model = None
+        if has_caption_model:
+            temp_caption_model = self.prompt_enhancer_image_caption_model
+            self.prompt_enhancer_image_caption_model = None
+            
+        has_llm_model = hasattr(self, "prompt_enhancer_llm_model") and self.prompt_enhancer_llm_model is not None
+        temp_llm_model = None
+        if has_llm_model:
+            temp_llm_model = self.prompt_enhancer_llm_model
+            self.prompt_enhancer_llm_model = None
+            
+        super().enable_sequential_cpu_offload(gpu_id=gpu_id, device=device)
+        
+        if has_text_encoder:
+            self.text_encoder = temp_text_encoder
+        if has_caption_model:
+            self.prompt_enhancer_image_caption_model = temp_caption_model
+        if has_llm_model:
+            self.prompt_enhancer_llm_model = temp_llm_model
 
     def mask_text_embeddings(self, emb, mask):
         if emb.shape[0] == 1:
