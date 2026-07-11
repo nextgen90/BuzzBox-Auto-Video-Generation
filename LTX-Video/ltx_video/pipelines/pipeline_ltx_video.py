@@ -295,7 +295,48 @@ class LTXVideoPipeline(DiffusionPipeline):
 
         self.allowed_inference_steps = allowed_inference_steps
 
-    def to(self, device: Union[str, torch.device], *args, **kwargs):
+        def prevent_cpu_offload(module):
+            if module is None: return
+            original_to = module.to
+            def custom_to(self_module, *args, **kwargs):
+                device = None
+                if len(args) > 0 and isinstance(args[0], (str, torch.device)):
+                    device = args[0]
+                elif "device" in kwargs:
+                    device = kwargs["device"]
+                if device is not None and str(device) == "cpu":
+                    return self_module
+                return original_to(*args, **kwargs)
+            module.to = custom_to.__get__(module, type(module))
+
+        prevent_cpu_offload(self.transformer)
+        prevent_cpu_offload(self.vae)
+
+        def prevent_gpu_offload(module):
+            if module is None: return
+            original_to = module.to
+            def custom_to(self_module, *args, **kwargs):
+                device = None
+                if len(args) > 0 and isinstance(args[0], (str, torch.device)):
+                    device = args[0]
+                elif "device" in kwargs:
+                    device = kwargs["device"]
+                if device is not None and str(device) != "cpu":
+                    return self_module
+                return original_to(*args, **kwargs)
+            module.to = custom_to.__get__(module, type(module))
+            
+        prevent_gpu_offload(self.text_encoder)
+
+    def to(self, *args, **kwargs):
+        device = None
+        if len(args) > 0 and isinstance(args[0], (str, torch.device)):
+            device = args[0]
+        elif "torch_device" in kwargs:
+            device = kwargs["torch_device"]
+        elif "device" in kwargs:
+            device = kwargs["device"]
+
         # Temporarily detach CPU-only components so super().to(device) does not move them to GPU
         has_text_encoder = hasattr(self, "text_encoder") and self.text_encoder is not None
         temp_text_encoder = None
@@ -315,7 +356,7 @@ class LTXVideoPipeline(DiffusionPipeline):
             temp_llm_model = self.prompt_enhancer_llm_model
             self.prompt_enhancer_llm_model = None
 
-        super().to(device, *args, **kwargs)
+        super().to(*args, **kwargs)
 
         if has_text_encoder:
             self.text_encoder = temp_text_encoder
@@ -1070,6 +1111,7 @@ class LTXVideoPipeline(DiffusionPipeline):
                 torch.cuda.empty_cache()
 
         # 3. Encode input prompt (T5 remains on CPU, prompt embeddings are moved to GPU in encode_prompt)
+        logger.info("Starting prompt encoding")
         (
             prompt_embeds,
             prompt_attention_mask,
@@ -1169,6 +1211,7 @@ class LTXVideoPipeline(DiffusionPipeline):
         one_minus_conditioning_mask_cache = {}
 
         with self.progress_bar(total=num_inference_steps) as progress_bar:
+            logger.info("Starting denoising")
             for i, t in enumerate(timesteps):
                 do_classifier_free_guidance = guidance_scale[i] > 1.0
                 do_spatio_temporal_guidance = stg_scale[i] > 0
@@ -1394,6 +1437,7 @@ class LTXVideoPipeline(DiffusionPipeline):
             else:
                 decode_timestep = None
             latents = self.tone_map_latents(latents, tone_map_compression_ratio)
+            logger.info("Starting VAE decode")
             image = vae_decode(
                 latents,
                 self.vae,

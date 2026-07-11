@@ -291,6 +291,14 @@ def create_ltx_video_pipeline(
     pipeline = LTXVideoPipeline(**submodel_dict)
     # LTXVideoPipeline.to is overridden to not move CPU-only models to device
     pipeline = pipeline.to(device)
+
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info("Pipeline creation completed")
+    logger.info(f"Transformer device: {next(pipeline.transformer.parameters()).device}")
+    logger.info(f"VAE device: {next(pipeline.vae.parameters()).device}")
+    logger.info(f"Text encoder device: {next(pipeline.text_encoder.parameters()).device}")
+
     return pipeline
 
 
