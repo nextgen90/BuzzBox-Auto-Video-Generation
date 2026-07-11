@@ -367,6 +367,20 @@ class LTXVideoPipeline(DiffusionPipeline):
 
         return self
 
+    def enable_model_cpu_offload(self, gpu_id: Optional[int] = None, device: Union[torch.device, str, None] = None):
+        # We handle text_encoder manually to ensure it stays on CPU permanently.
+        # Temporarily detach it so super() doesn't add an accelerate hook that moves inputs to GPU.
+        has_text_encoder = hasattr(self, "text_encoder") and self.text_encoder is not None
+        temp_text_encoder = None
+        if has_text_encoder:
+            temp_text_encoder = self.text_encoder
+            self.text_encoder = None
+            
+        super().enable_model_cpu_offload(gpu_id=gpu_id, device=device)
+        
+        if has_text_encoder:
+            self.text_encoder = temp_text_encoder
+
     def mask_text_embeddings(self, emb, mask):
         if emb.shape[0] == 1:
             keep_index = mask.sum().item()
@@ -435,6 +449,9 @@ class LTXVideoPipeline(DiffusionPipeline):
             assert (
                 self.text_encoder is not None
             ), "You should provide either prompt_embeds or self.text_encoder should not be None,"
+            
+            # CPU/GPU transition: text_enc_device is typically CPU to save VRAM.
+            # We must move all inputs to text_enc_device BEFORE calling the text encoder.
             text_enc_device = next(self.text_encoder.parameters()).device
             prompt = self._text_preprocessing(prompt)
             text_inputs = self.tokenizer(
@@ -461,8 +478,10 @@ class LTXVideoPipeline(DiffusionPipeline):
                     f" {max_length} tokens: {removed_text}"
                 )
 
+            # CPU/GPU transition: Move attention_mask and input_ids to the text encoder's device (CPU)
             prompt_attention_mask = text_inputs.attention_mask.to(text_enc_device)
 
+            # The entire text encoder invocation executes on text_enc_device (CPU)
             prompt_embeds = self.text_encoder(
                 text_input_ids.to(text_enc_device), attention_mask=prompt_attention_mask
             )
@@ -479,6 +498,8 @@ class LTXVideoPipeline(DiffusionPipeline):
         else:
             dtype = None
 
+        # CPU/GPU transition: After text encoding finishes, move the generated embeddings and masks
+        # back to the execution_device (typically GPU) for the rest of the pipeline.
         prompt_embeds = prompt_embeds.to(dtype=dtype, device=device)
         if prompt_attention_mask is not None:
             prompt_attention_mask = prompt_attention_mask.to(device)
@@ -508,11 +529,13 @@ class LTXVideoPipeline(DiffusionPipeline):
                 add_special_tokens=True,
                 return_tensors="pt",
             )
+            # CPU/GPU transition: Move all unconditional inputs to text_enc_device (CPU)
             negative_prompt_attention_mask = uncond_input.attention_mask
             negative_prompt_attention_mask = negative_prompt_attention_mask.to(
                 text_enc_device
             )
 
+            # Execute unconditional encoding on text_enc_device (CPU)
             negative_prompt_embeds = self.text_encoder(
                 uncond_input.input_ids.to(text_enc_device),
                 attention_mask=negative_prompt_attention_mask,
@@ -523,6 +546,7 @@ class LTXVideoPipeline(DiffusionPipeline):
             # duplicate unconditional embeddings for each generation per prompt, using mps friendly method
             seq_len = negative_prompt_embeds.shape[1]
 
+            # CPU/GPU transition: Move negative embeddings back to execution_device (GPU)
             negative_prompt_embeds = negative_prompt_embeds.to(
                 dtype=dtype, device=device
             )
