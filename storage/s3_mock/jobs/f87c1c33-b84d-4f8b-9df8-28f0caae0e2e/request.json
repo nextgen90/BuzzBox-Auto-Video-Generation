@@ -1,0 +1,16 @@
+{
+    "request_id": "worker-test-req",
+    "character": "test_sprint2_char",
+    "language": "en",
+    "script": "A test script run inside the background worker.",
+    "duration": 15,
+    "aspect_ratio": "9:16",
+    "resolution": "720p",
+    "fps": 30,
+    "camera": "medium-close-up",
+    "style": "photorealistic",
+    "negative_prompt": "deformed hands",
+    "metadata": {
+        "priority": "medium"
+    }
+}

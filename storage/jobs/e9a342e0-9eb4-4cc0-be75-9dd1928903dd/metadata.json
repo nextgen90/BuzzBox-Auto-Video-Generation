@@ -1,0 +1,16 @@
+{
+    "generation_time": 24.875677900010487,
+    "FPS": 30,
+    "resolution": "1080x1920",
+    "aspect_ratio": "9:16",
+    "model": "Wan-Video/Wan2.1-T2V-1.3B",
+    "seed": 4567,
+    "steps": 20,
+    "scheduler": "default",
+    "GPU": "None",
+    "VRAM": "0GB",
+    "prompt": "Fast API Route verification script.",
+    "negative_prompt": "",
+    "output_path": "D:\\PROJECTS\\SAAS\\buzzbox-ai-engine\\backend\\outputs\\e9a342e0-9eb4-4cc0-be75-9dd1928903dd\\video.mp4",
+    "S3_URL": "/s3_mock/videos/e9a342e0-9eb4-4cc0-be75-9dd1928903dd/video.mp4"
+}

@@ -154,8 +154,9 @@ logs/*
 outputs/*
 !outputs/.gitkeep
 
-storage/*
-!storage/.gitkeep
+storage/cache/*
+storage/renders/*
+storage/exports/*
 
 uploads/*
 !uploads/.gitkeep

@@ -1,0 +1,9 @@
+{
+    "script": "A test script running in the updated worker.",
+    "character": "test_sprint3_char",
+    "language": "en",
+    "duration": 2,
+    "camera": "medium shot, static camera, eye level",
+    "style": "cinematic",
+    "negative_prompt": "blurry, low quality, distorted, extra limbs"
+}

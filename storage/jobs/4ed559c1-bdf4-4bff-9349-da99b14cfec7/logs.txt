@@ -1,0 +1,4 @@
+[2026-07-06T11:27:05.346427+00:00] [QUEUED] Job initialized. Estimated execution time: 70s
+[2026-07-06T11:27:05.415854+00:00] [VALIDATING_REQUEST] Validating request parameters
+[2026-07-06T11:27:05.961353+00:00] [LOADING_CHARACTER] Loading character assets
+[2026-07-06T11:27:06.088014+00:00] [FAILED] Error: Character 'Gothic Knight' does not exist in storage.

@@ -1,0 +1,16 @@
+{
+    "request_id": "job-service-test-req",
+    "character": "cyberpunk_nomad",
+    "language": "en-US",
+    "script": "Hello future.",
+    "duration": 30,
+    "aspect_ratio": "16:9",
+    "resolution": "1080p",
+    "fps": 30,
+    "camera": "close up",
+    "style": "cyberpunk",
+    "negative_prompt": "cartoon",
+    "metadata": {
+        "priority": "high"
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "aspect_ratio": "16:9",
+    "resolution": "1080p",
+    "fps": 30,
+    "background_music": true,
+    "subtitles": false,
+    "request_id": "test-req-001",
+    "estimated_time": 70,
+    "camera": null,
+    "style": null,
+    "negative_prompt": null,
+    "custom_metadata": {
+        "source": "unit-test"
+    }
+}

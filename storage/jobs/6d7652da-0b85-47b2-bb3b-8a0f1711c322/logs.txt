@@ -1,0 +1,17 @@
+[2026-07-06T12:32:32.977299+00:00] [QUEUED] Job initialized. Estimated execution time: 14s
+[2026-07-06T12:32:33.034604+00:00] [VALIDATING_REQUEST] Validating request parameters
+[2026-07-06T12:32:33.065857+00:00] [VALIDATING] Validating request parameters
+[2026-07-06T12:32:33.107193+00:00] [LOADING_CHARACTER] Loading character assets
+[2026-07-06T12:32:33.143391+00:00] [BUILDING_PROMPT] Building AI prompt context
+[2026-07-06T12:32:33.190264+00:00] [LOADING_MODEL] Loading AI models into memory
+[2026-07-06T12:32:33.205888+00:00] [RUNTIME_CHECK] Verifying system runtime resources
+[2026-07-06T12:32:33.241594+00:00] [WAITING_GPU] Waiting for GPU resource allocation
+[2026-07-06T12:32:33.264718+00:00] [PREPARING_INPUTS] Preparing video parameters and seed
+[2026-07-06T12:32:33.283955+00:00] [GENERATING] Generating video via AI model
+[2026-07-06T12:32:33.331936+00:00] [FAILED] Error: name 'Any' is not defined
+Stacktrace:
+Traceback (most recent call last):
+  File "D:\PROJECTS\SAAS\buzzbox-ai-engine\backend\app\workers\generation_worker.py", line 106, in process_generation_job
+    def step_callback(step: int, total_steps: int, callback_kwargs: Any) -> None:
+NameError: name 'Any' is not defined. Did you mean: 'any'?
+

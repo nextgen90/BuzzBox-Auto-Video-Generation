@@ -1,0 +1,2 @@
+[2026-07-06T12:36:05.761797+00:00] [QUEUED] Job initialized. Estimated execution time: 70s
+[2026-07-06T12:36:05.831913+00:00] [LOADING_CHARACTER] Loading character assets

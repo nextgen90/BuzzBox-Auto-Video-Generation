@@ -1,0 +1,8 @@
+{
+    "job_id": "d234bf93-1815-4626-9ce5-8fe5924e5371",
+    "status": "failed",
+    "progress": 100,
+    "current_step": "Generation failed",
+    "estimated_remaining_seconds": 0,
+    "error": "name 'Any' is not defined\nStacktrace:\nTraceback (most recent call last):\n  File \"D:\\PROJECTS\\SAAS\\buzzbox-ai-engine\\backend\\app\\workers\\generation_worker.py\", line 106, in process_generation_job\n    def step_callback(step: int, total_steps: int, callback_kwargs: Any) -> None:\nNameError: name 'Any' is not defined. Did you mean: 'any'?\n"
+}

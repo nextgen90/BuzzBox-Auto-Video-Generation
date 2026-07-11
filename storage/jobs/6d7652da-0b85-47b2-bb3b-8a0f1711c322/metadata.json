@@ -1,0 +1,13 @@
+{
+    "aspect_ratio": null,
+    "resolution": null,
+    "fps": null,
+    "background_music": false,
+    "subtitles": true,
+    "request_id": "sprint3-worker-test",
+    "estimated_time": 14,
+    "camera": "medium shot, static camera, eye level",
+    "style": "cinematic",
+    "negative_prompt": "",
+    "custom_metadata": {}
+}

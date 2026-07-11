@@ -1,0 +1,10 @@
+{
+    "request_id": "sprint3-worker-test",
+    "character": "test_sprint3_char",
+    "language": "en",
+    "script": "A test script running in the updated worker.",
+    "duration": 2,
+    "platform": "tiktok",
+    "profile": "FAST",
+    "seed": 12345
+}

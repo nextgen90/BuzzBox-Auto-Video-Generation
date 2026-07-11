@@ -1,0 +1,16 @@
+{
+    "generation_time": 10.620540600008098,
+    "FPS": 30,
+    "resolution": "1920x1080",
+    "aspect_ratio": "16:9",
+    "model": "Wan-Video/Wan2.1-T2V-1.3B",
+    "seed": 8888,
+    "steps": 10,
+    "scheduler": "default",
+    "GPU": "None",
+    "VRAM": "0GB",
+    "prompt": "Synchronous worker execution script.",
+    "negative_prompt": "",
+    "output_path": "D:\\PROJECTS\\SAAS\\buzzbox-ai-engine\\backend\\outputs\\86920aa0-d529-486b-9949-4a526207bd01\\video.mp4",
+    "S3_URL": null
+}

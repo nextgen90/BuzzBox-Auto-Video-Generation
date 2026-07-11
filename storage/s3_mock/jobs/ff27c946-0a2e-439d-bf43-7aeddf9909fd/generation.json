@@ -1,0 +1,22 @@
+{
+    "job_id": "ff27c946-0a2e-439d-bf43-7aeddf9909fd",
+    "engine": "wan22",
+    "engine_version": "2.2.0",
+    "steps": 10,
+    "guidance_scale": 4.5,
+    "seed": 12345,
+    "generation_time_seconds": 5.477996800007531,
+    "fps": 30,
+    "duration": 2,
+    "resolution": "720x1280",
+    "fallback_mode": true,
+    "statistics": {
+        "method": "pytorch_tensor_fallback",
+        "device": "cpu",
+        "memory_allocated": "0.0MB",
+        "memory_peak": "0.0MB",
+        "steps_processed": 10
+    },
+    "warnings": [],
+    "errors": []
+}

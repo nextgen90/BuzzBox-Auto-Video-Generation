@@ -1,0 +1,8 @@
+{
+    "job_id": "4ed559c1-bdf4-4bff-9349-da99b14cfec7",
+    "status": "failed",
+    "progress": 100,
+    "current_step": "Generation failed",
+    "estimated_remaining_seconds": 0,
+    "error": "Character 'Gothic Knight' does not exist in storage."
+}

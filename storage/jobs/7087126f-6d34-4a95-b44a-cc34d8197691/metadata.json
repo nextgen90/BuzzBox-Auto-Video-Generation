@@ -1,0 +1,15 @@
+{
+    "aspect_ratio": "16:9",
+    "resolution": "1080p",
+    "fps": 30,
+    "background_music": false,
+    "subtitles": true,
+    "request_id": "job-service-test-req",
+    "estimated_time": 70,
+    "camera": "close up",
+    "style": "cyberpunk",
+    "negative_prompt": "cartoon",
+    "custom_metadata": {
+        "priority": "high"
+    }
+}

@@ -1,0 +1,34 @@
+{
+    "script": "A test script run inside the background worker.",
+    "character": "test_sprint2_char",
+    "language": "en",
+    "duration": 15,
+    "camera": "medium-close-up",
+    "style": "photorealistic",
+    "negative_prompt": "deformed hands",
+    "identity_reference": [
+        "D:\\PROJECTS\\SAAS\\buzzbox-ai-engine\\backend\\storage\\characters\\test_sprint2_char\\identity\\front.png"
+    ],
+    "pose_reference": [
+        "D:\\PROJECTS\\SAAS\\buzzbox-ai-engine\\backend\\storage\\characters\\test_sprint2_char\\poses\\standing.png"
+    ],
+    "voice_reference": [
+        "D:\\PROJECTS\\SAAS\\buzzbox-ai-engine\\backend\\storage\\characters\\test_sprint2_char\\voices\\sample.wav"
+    ],
+    "bible_reference": "D:\\PROJECTS\\SAAS\\buzzbox-ai-engine\\backend\\storage\\characters\\test_sprint2_char\\bible\\character.md",
+    "bible_content": "# Character Bible\nThis is a test markdown character bible.",
+    "character_metadata": {
+        "id": "test_sprint2_char",
+        "display_name": "Test Sprint 2 Character",
+        "version": "1.2",
+        "default_voice": "test_voice",
+        "default_style": "cinematic",
+        "languages": [
+            "en",
+            "fr"
+        ],
+        "identity_version": 2,
+        "voice_version": 1
+    },
+    "prompt_instruction": "Synthesize voiceover in en for script: 'A test script run inside the background worker.'. Generate video with character 'Test Sprint 2 Character' in 'photorealistic' style. Camera framing: 'medium-close-up'."
+}

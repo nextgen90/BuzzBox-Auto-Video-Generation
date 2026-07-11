@@ -1,0 +1,14 @@
+{
+    "job_id": "ff27c946-0a2e-439d-bf43-7aeddf9909fd",
+    "status": "encoding",
+    "progress": 95,
+    "current_step": "Encoding frames to MP4 and GIF",
+    "estimated_remaining_seconds": 0,
+    "estimated_time": 14,
+    "video_url": null,
+    "thumbnail_url": null,
+    "generation_statistics": {},
+    "error": null,
+    "created_at": "2026-07-06T12:33:21.387682+00:00",
+    "updated_at": "2026-07-06T12:33:27.137267+00:00"
+}

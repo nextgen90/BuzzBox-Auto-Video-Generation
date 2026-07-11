@@ -1,0 +1,33 @@
+{
+    "script": "Fast API Route verification script.",
+    "character": "test_sprint3_char",
+    "language": "en-US",
+    "duration": 5,
+    "camera": "medium shot, static camera, eye level",
+    "style": "cinematic",
+    "negative_prompt": "blurry, low quality, distorted, extra limbs",
+    "identity_reference": [
+        "D:\\PROJECTS\\SAAS\\buzzbox-ai-engine\\backend\\storage\\characters\\test_sprint3_char\\identity\\front.png"
+    ],
+    "pose_reference": [
+        "D:\\PROJECTS\\SAAS\\buzzbox-ai-engine\\backend\\storage\\characters\\test_sprint3_char\\poses\\standing.png"
+    ],
+    "voice_reference": [
+        "D:\\PROJECTS\\SAAS\\buzzbox-ai-engine\\backend\\storage\\characters\\test_sprint3_char\\voices\\sample.wav"
+    ],
+    "bible_reference": "D:\\PROJECTS\\SAAS\\buzzbox-ai-engine\\backend\\storage\\characters\\test_sprint3_char\\bible\\character.md",
+    "bible_content": "# Character Bible\nThis is a test markdown character bible.",
+    "character_metadata": {
+        "id": "test_sprint3_char",
+        "display_name": "Test Sprint 3 Character",
+        "version": "1.3",
+        "default_voice": "test_voice",
+        "default_style": "cinematic",
+        "languages": [
+            "en"
+        ],
+        "identity_version": 1,
+        "voice_version": 1
+    },
+    "prompt_instruction": "Synthesize voiceover in en-US for script: 'Fast API Route verification script.'. Generate video with character 'Test Sprint 3 Character' in 'cinematic' style. Camera framing: 'medium shot, static camera, eye level'."
+}

@@ -1,0 +1,9 @@
+{
+    "script": "Fast API Route verification script.",
+    "character": "test_sprint3_char",
+    "language": "en-US",
+    "duration": 5,
+    "camera": "medium shot, static camera, eye level",
+    "style": "cinematic",
+    "negative_prompt": "blurry, low quality, distorted, extra limbs"
+}

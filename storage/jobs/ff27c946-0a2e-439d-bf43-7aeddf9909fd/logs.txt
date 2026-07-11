@@ -1,0 +1,15 @@
+[2026-07-06T12:33:21.397530+00:00] [QUEUED] Job initialized. Estimated execution time: 14s
+[2026-07-06T12:33:21.440580+00:00] [VALIDATING_REQUEST] Validating request parameters
+[2026-07-06T12:33:21.458705+00:00] [VALIDATING] Validating request parameters
+[2026-07-06T12:33:21.497614+00:00] [LOADING_CHARACTER] Loading character assets
+[2026-07-06T12:33:21.529684+00:00] [BUILDING_PROMPT] Building AI prompt context
+[2026-07-06T12:33:21.555992+00:00] [LOADING_MODEL] Loading AI models into memory
+[2026-07-06T12:33:21.581568+00:00] [RUNTIME_CHECK] Verifying system runtime resources
+[2026-07-06T12:33:21.596520+00:00] [WAITING_GPU] Waiting for GPU resource allocation
+[2026-07-06T12:33:21.630488+00:00] [PREPARING_INPUTS] Preparing video parameters and seed
+[2026-07-06T12:33:21.646113+00:00] [GENERATING] Generating video via AI model
+[2026-07-06T12:33:21.646113+00:00] [GENERATING] Inference step 0/10 complete.
+[2026-07-06T12:33:21.798505+00:00] [GENERATING] Inference step 5/10 complete.
+[2026-07-06T12:33:27.139249+00:00] [ENCODING] Encoding frames to MP4 and GIF
+[2026-07-06T12:33:31.516183+00:00] [UPLOADING] Uploading complete job artifacts to storage
+[2026-07-06T12:33:31.622162+00:00] [COMPLETED] Generation completed successfully

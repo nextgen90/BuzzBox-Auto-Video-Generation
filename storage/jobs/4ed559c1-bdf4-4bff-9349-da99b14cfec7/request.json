@@ -1,0 +1,18 @@
+{
+    "request_id": "test-req-001",
+    "character": "Gothic Knight",
+    "language": "en",
+    "script": "A dark knight stands in the courtyard during a storm.",
+    "duration": 30,
+    "aspect_ratio": "16:9",
+    "resolution": "1080p",
+    "fps": 30,
+    "background_music": true,
+    "subtitles": false,
+    "camera": null,
+    "style": null,
+    "negative_prompt": null,
+    "metadata": {
+        "source": "unit-test"
+    }
+}
