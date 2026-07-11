@@ -139,8 +139,12 @@ def _generate_t2v_prompt(
         )
         for m in messages
     ]
+    
+    # CPU/GPU transition: Determine the actual device from the model weights
+    target_device = next(prompt_enhancer_model.parameters()).device
+    
     model_inputs = prompt_enhancer_tokenizer(texts, return_tensors="pt").to(
-        prompt_enhancer_model.device
+        target_device
     )
 
     return _generate_and_decode_prompts(
@@ -176,8 +180,12 @@ def _generate_i2v_prompt(
         )
         for m in messages
     ]
+    
+    # CPU/GPU transition: Determine the actual device from the model weights
+    target_device = next(prompt_enhancer_model.parameters()).device
+    
     model_inputs = prompt_enhancer_tokenizer(texts, return_tensors="pt").to(
-        prompt_enhancer_model.device
+        target_device
     )
 
     return _generate_and_decode_prompts(
@@ -192,9 +200,13 @@ def _generate_image_captions(
     system_prompt: str = "<DETAILED_CAPTION>",
 ) -> List[str]:
     image_caption_prompts = [system_prompt] * len(images)
+    
+    # CPU/GPU transition: Determine the actual device from Florence model weights
+    target_device = next(image_caption_model.parameters()).device
+    
     inputs = image_caption_processor(
         image_caption_prompts, images, return_tensors="pt"
-    ).to(image_caption_model.device)
+    ).to(target_device)
 
     with torch.inference_mode():
         generated_ids = image_caption_model.generate(
