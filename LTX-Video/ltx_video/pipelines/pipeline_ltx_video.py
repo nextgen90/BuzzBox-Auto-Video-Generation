@@ -1323,7 +1323,10 @@ class LTXVideoPipeline(DiffusionPipeline):
                 # predict noise model_output
                 with context_manager:
                     # Dynamically derive the actual hardware execution device of the transformer
-                    transformer_device = next(self.transformer.parameters()).device
+                    if hasattr(self.transformer, "_hf_hook"):
+                        transformer_device = self._execution_device
+                    else:
+                        transformer_device = next(self.transformer.parameters()).device
 
                     # Conditionally move all required inputs to the transformer's execution device
                     _latent_model_input = latent_model_input.to(self.transformer.dtype)
@@ -1345,6 +1348,10 @@ class LTXVideoPipeline(DiffusionPipeline):
                     _timestep = current_timestep
                     if _timestep.device != transformer_device:
                         _timestep = _timestep.to(transformer_device)
+                        
+                    _skip_layer_mask = skip_layer_mask
+                    if _skip_layer_mask is not None and _skip_layer_mask.device != transformer_device:
+                        _skip_layer_mask = _skip_layer_mask.to(transformer_device)
 
                     print("------------------------------------------------")
                     print("TRANSFORMER INPUT AUDIT")
@@ -1365,7 +1372,7 @@ class LTXVideoPipeline(DiffusionPipeline):
                         encoder_hidden_states=_encoder_hidden_states,
                         encoder_attention_mask=_encoder_attention_mask,
                         timestep=_timestep,
-                        skip_layer_mask=skip_layer_mask,
+                        skip_layer_mask=_skip_layer_mask,
                         skip_layer_strategy=skip_layer_strategy,
                         return_dict=False,
                     )[0]
