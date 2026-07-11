@@ -19,9 +19,6 @@ from einops import rearrange
 from transformers import (
     T5EncoderModel,
     T5Tokenizer,
-    AutoModelForCausalLM,
-    AutoProcessor,
-    AutoTokenizer,
 )
 
 from ltx_video.models.autoencoders.causal_video_autoencoder import (
@@ -37,7 +34,6 @@ from ltx_video.models.transformers.symmetric_patchifier import Patchifier
 from ltx_video.models.transformers.transformer3d import Transformer3DModel
 from ltx_video.schedulers.rf import TimestepShifter
 from ltx_video.utils.skip_layer_strategy import SkipLayerStrategy
-from ltx_video.utils.prompt_enhance_utils import generate_cinematic_prompt
 from ltx_video.models.autoencoders.latent_upsampler import LatentUpsampler
 from ltx_video.models.autoencoders.vae_encode import (
     un_normalize_latents,
@@ -1155,6 +1151,7 @@ class LTXVideoPipeline(DiffusionPipeline):
                 skip_block_list = new_skip_block_list
 
         if enhance_prompt:
+            from ltx_video.utils.prompt_enhance_utils import generate_cinematic_prompt
             self.prompt_enhancer_image_caption_model = (
                 self.prompt_enhancer_image_caption_model.to(self._execution_device)
             )

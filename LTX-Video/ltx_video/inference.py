@@ -16,12 +16,12 @@ import torchvision.transforms.functional as TVF
 from transformers import (
     T5EncoderModel,
     T5Tokenizer,
-    AutoModelForCausalLM,
-    AutoProcessor,
-    AutoTokenizer,
 )
 from huggingface_hub import hf_hub_download
 from dataclasses import dataclass, field
+
+# Feature flag to completely disable Prompt Enhancement (Florence and Llama models)
+ENABLE_PROMPT_ENHANCEMENT_SUBSYSTEM = False
 
 from ltx_video.models.autoencoders.causal_video_autoencoder import (
     CausalVideoAutoencoder,
@@ -251,6 +251,7 @@ def create_ltx_video_pipeline(
     text_encoder = text_encoder.to("cpu")
 
     if enhance_prompt:
+        from transformers import AutoModelForCausalLM, AutoProcessor, AutoTokenizer
         prompt_enhancer_image_caption_model = AutoModelForCausalLM.from_pretrained(
             prompt_enhancer_image_caption_model_name_or_path, trust_remote_code=True, torch_dtype=torch.bfloat16
         )
@@ -536,7 +537,8 @@ def infer(config: InferenceConfig):
 
     prompt_word_count = len(config.prompt.split())
     enhance_prompt = (
-        prompt_enhancement_words_threshold > 0
+        ENABLE_PROMPT_ENHANCEMENT_SUBSYSTEM
+        and prompt_enhancement_words_threshold > 0
         and prompt_word_count < prompt_enhancement_words_threshold
     )
 
