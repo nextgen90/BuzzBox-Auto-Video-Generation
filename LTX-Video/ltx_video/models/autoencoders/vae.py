@@ -186,7 +186,6 @@ class AutoencoderKLWrapper(ModelMixin, ConfigMixin):
         self, z: torch.FloatTensor, target_shape, timestep: Optional[torch.Tensor] = None
     ):
         overlap_size = int(self.tile_latent_min_size * (1 - self.tile_overlap_factor))
-        overlap_size = max(1, overlap_size)
         blend_extent = int(self.tile_sample_min_size * self.tile_overlap_factor)
         row_limit = self.tile_sample_min_size - blend_extent
         tile_target_shape = (
