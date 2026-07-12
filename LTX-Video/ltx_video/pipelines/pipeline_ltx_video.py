@@ -1451,8 +1451,8 @@ class LTXVideoPipeline(DiffusionPipeline):
                     callback_on_step_end(self, i, t, {})
 
         if offload_to_cpu:
-            # Transformer stays on GPU. We only offload the VAE.
-            self.vae = self.vae.cpu()
+            # Move VAE to GPU for decoding since Accelerate hooks don't catch vae.decode()
+            self.vae = self.vae.to(latents.device)
             import gc
             gc.collect()
             if torch.cuda.is_available():

@@ -343,7 +343,7 @@ class RectifiedFlowScheduler(SchedulerMixin, ConfigMixin, TimestepShifter):
 
         timesteps_padded = torch.cat(
             [self.timesteps, torch.zeros(1, device=self.timesteps.device)]
-        )
+        ).to(timestep.device)
 
         # Find the next lower timestep(s) and compute the dt from the current timestep(s)
         if timestep.ndim == 0:
