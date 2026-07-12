@@ -1321,10 +1321,13 @@ class LTXVideoPipeline(DiffusionPipeline):
                 # predict noise model_output
                 with context_manager:
                     # Dynamically derive the actual hardware execution device of the transformer
-                    if hasattr(self.transformer, "_hf_hook"):
+                    if hasattr(self.transformer, "_hf_hook") and hasattr(self.transformer._hf_hook, "execution_device"):
+                        transformer_device = self.transformer._hf_hook.execution_device
+                    elif hasattr(self, "_execution_device") and str(self._execution_device) != "cpu":
                         transformer_device = self._execution_device
                     else:
-                        transformer_device = next(self.transformer.parameters()).device
+                        # Fallback to the pipeline's device variable (which is cuda when offloading)
+                        transformer_device = device
 
                     # Conditionally move all required inputs to the transformer's execution device
                     _latent_model_input = latent_model_input.to(self.transformer.dtype)
