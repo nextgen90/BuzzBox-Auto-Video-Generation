@@ -78,8 +78,11 @@ class AutoencoderKLWrapper(ModelMixin, ConfigMixin):
 
     def set_tiling_params(self, sample_size: int = 512, overlap_factor: float = 0.25):
         self.tile_sample_min_size = sample_size
-        num_blocks = len(self.encoder.down_blocks)
-        self.tile_latent_min_size = int(sample_size / (2 ** (num_blocks - 1)))
+        if hasattr(self, "spatial_downscale_factor"):
+            self.tile_latent_min_size = int(sample_size / self.spatial_downscale_factor)
+        else:
+            num_blocks = len(self.encoder.down_blocks)
+            self.tile_latent_min_size = int(sample_size / (2 ** (num_blocks - 1)))
         self.tile_overlap_factor = overlap_factor
 
     def enable_z_tiling(self, z_sample_size: int = 8):
@@ -186,7 +189,6 @@ class AutoencoderKLWrapper(ModelMixin, ConfigMixin):
         self, z: torch.FloatTensor, target_shape, timestep: Optional[torch.Tensor] = None
     ):
         overlap_size = int(self.tile_latent_min_size * (1 - self.tile_overlap_factor))
-        print(f"DEBUG: tile_sample_min_size={self.tile_sample_min_size}, tile_latent_min_size={self.tile_latent_min_size}, tile_overlap_factor={self.tile_overlap_factor}, overlap_size={overlap_size}")
         blend_extent = int(self.tile_sample_min_size * self.tile_overlap_factor)
         row_limit = self.tile_sample_min_size - blend_extent
         tile_target_shape = (
