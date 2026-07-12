@@ -182,7 +182,9 @@ class AutoencoderKLWrapper(ModelMixin, ConfigMixin):
             ) + b[:, :, :, :, x] * (x / blend_extent)
         return b
 
-    def _hw_tiled_decode(self, z: torch.FloatTensor, target_shape):
+    def _hw_tiled_decode(
+        self, z: torch.FloatTensor, target_shape, timestep: Optional[torch.Tensor] = None
+    ):
         overlap_size = int(self.tile_latent_min_size * (1 - self.tile_overlap_factor))
         overlap_size = max(1, overlap_size)
         blend_extent = int(self.tile_sample_min_size * self.tile_overlap_factor)
@@ -206,7 +208,10 @@ class AutoencoderKLWrapper(ModelMixin, ConfigMixin):
                     j : j + self.tile_latent_min_size,
                 ]
                 tile = self.post_quant_conv(tile)
-                decoded = self.decoder(tile, target_shape=tile_target_shape)
+                if "timestep" in self.decoder_params:
+                    decoded = self.decoder(tile, target_shape=tile_target_shape, timestep=timestep)
+                else:
+                    decoded = self.decoder(tile, target_shape=tile_target_shape)
                 row.append(decoded)
             rows.append(row)
         result_rows = []
@@ -332,16 +337,16 @@ class AutoencoderKLWrapper(ModelMixin, ConfigMixin):
 
             decoded_tiles = [
                 (
-                    self._hw_tiled_decode(z_tile, target_shape_split)
+                    self._hw_tiled_decode(z_tile, target_shape_split, timestep=timestep)
                     if self.use_hw_tiling
-                    else self._decode(z_tile, target_shape=target_shape_split)
+                    else self._decode(z_tile, target_shape=target_shape_split, timestep=timestep)
                 )
                 for z_tile in torch.tensor_split(z, num_splits, dim=2)
             ]
             decoded = torch.cat(decoded_tiles, dim=2)
         else:
             decoded = (
-                self._hw_tiled_decode(z, target_shape)
+                self._hw_tiled_decode(z, target_shape, timestep=timestep)
                 if self.use_hw_tiling
                 else self._decode(z, target_shape=target_shape, timestep=timestep)
             )
