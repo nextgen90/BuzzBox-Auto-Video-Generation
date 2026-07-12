@@ -1022,9 +1022,9 @@ class LTXVideoPipeline(DiffusionPipeline):
             batch_size = len(prompt)
         else:
             batch_size = prompt_embeds.shape[0]
-
-        device = self._execution_device
-
+        device = kwargs.get("device", self._execution_device)
+        if str(device) == "cpu" and offload_to_cpu and torch.cuda.is_available():
+            device = torch.device("cuda:0")
         self.video_scale_factor = self.video_scale_factor if is_video else 1
         vae_per_channel_normalize = kwargs.get("vae_per_channel_normalize", True)
         image_cond_noise_scale = kwargs.get("image_cond_noise_scale", 0.0)
@@ -1144,8 +1144,6 @@ class LTXVideoPipeline(DiffusionPipeline):
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
-
-        self.transformer = self.transformer.to(self._execution_device)
 
         prompt_embeds_batch = prompt_embeds
         prompt_attention_mask_batch = prompt_attention_mask
